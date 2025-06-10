@@ -9,22 +9,45 @@
 
 namespace {
 
-  constexpr int pin_buttons[] = {25, 23, 27, 29, 24, 22, 26, 28};
+  constexpr int pin_buttons[] = {28, 26, 22, 24, 29, 27, 23, 25};
 
 }
 
 // MFD pages definitions
 
-bool testPageCallback(IDashGfxWrapper &gfx) {
-  static constexpr char *msg = "TEST PAGE";
-  gfx.textWrite(256, 120, 1, 65504, 0, msg);
+bool testPageCallback(IDashGfxWrapper &gfx, const int (&button_state)[DashPageMgr::buttonCountInCol()], PageState state = PageState::on_process) 
+{
+  if (state == PageState::on_switch)
+  {
+    static constexpr char *msg = "TEST PAGE";
+    gfx.textWrite(256, 120, 1, 65504, 0, msg);
+  }
   return true;
 }
 
-PageDefinition testPage = {testPageCallback, 
-  {{"<1", nullptr}, {"<2", nullptr}, {"<3", nullptr}, {"<4", nullptr}, {"5>", nullptr}, {"6>", nullptr}, {"7>", nullptr}, {"8>", nullptr}}};
+bool testPage2Callback(IDashGfxWrapper &gfx, const int (&button_state)[DashPageMgr::buttonCountInCol()], PageState state = PageState::on_process) 
+{
+  static unsigned long timer = 0;
+  
+  if (state == PageState::on_switch)
+  {
+    static constexpr char *msg = "TEST PAGE 2";
+    gfx.textWrite(256, 120, 1, 65504, 0, msg);
+    timer = millis();
+  } else if (button_state[7] == LOW) {
+    return false;
+  }
+  
+  return (millis() - timer) < 3000;
+}
 
-PageDefinition *pageDef[] = {&testPage, nullptr};
+PageDefinition testPage2 = {testPage2Callback, 
+  {{"<1", nullptr}, {"", nullptr}, {"", nullptr}, {"<4", nullptr}, {"5>", nullptr}, {"", nullptr}, {"", nullptr}, {"BACK>", nullptr}}};
+
+PageDefinition testPage = {testPageCallback, 
+  {{"<PAGE 2", &testPage2}, {"<2", nullptr}, {"<3", nullptr}, {"<4", nullptr}, {"5>", nullptr}, {"6>", nullptr}, {"7>", nullptr}, {"8>", nullptr}}};
+
+PageDefinition *pageDef[] = {&testPage, &testPage2, nullptr};
 
 DashRA8875GfxWrapper dashRA8875GfxWrapper;
 DashPageMgr pageMgr(dashRA8875GfxWrapper, pin_buttons, pageDef);
@@ -44,6 +67,8 @@ void setup() {
   constexpr char *msg = "INIT";
   constexpr int msg_len = strlen(msg);
   dashRA8875GfxWrapper.textWrite(256, 0, 1, 65504, 0, msg);
+
+  pageMgr.setPage(0);
 }
 
 void loop() {
@@ -61,5 +86,5 @@ void loop() {
 
   char buf[64];
   sprintf(buf, "Uptime: %ld\d %ld:%02ld:%02ld", days, hours, minutes, seconds);
-  dashRA8875GfxWrapper.textWrite(450, 432, 0, 65504, 0, buf);
+  dashRA8875GfxWrapper.textWrite(650, 460, 0, 65504, 0, buf);
 }

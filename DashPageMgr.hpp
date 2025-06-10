@@ -3,11 +3,18 @@
 #include <Arduino.h>
 
 #include "DashGfxWrapper.hpp"
+#include "SignalDebouncer.hpp"
 
 namespace {
   constexpr int btn_count = 8;                  // number of physical buttons
-  constexpr unsigned long debounce_delay = 100;
 }
+
+enum PageState
+{
+  on_process = 0,   // Page has already been activated.
+  on_switch = 1,    // Page has just been activated and the callback is invoked for the first time.
+  on_leave = 2      // Leaving the page after callback has returned.
+};
 
 struct PageDefinition;
 
@@ -22,7 +29,9 @@ struct ButtonDefinition
 // corresponds to the physical order of the buttons, top to bottom and left to right.
 struct PageDefinition
 {
-  bool (*callback)(IDashGfxWrapper &gfx);     // Switch to previous page if callback returns false.
+  // Callback for page specific stuff. on_switched is true when called first time after switching from another page.
+  // Return false to switch to previous page.
+  bool (*callback)(IDashGfxWrapper &gfx, const int (&m_button_state)[btn_count], PageState state = PageState::on_process);
   ButtonDefinition buttons[btn_count];
 };
 
@@ -45,17 +54,20 @@ class DashPageMgr
   private:
     IDashGfxWrapper &m_gfx;
     
-    int m_page_num = 0;
+    int m_page_num = -1;
     int m_prev_page = -1;
+    PageState m_page_state = PageState::on_process;   // True after page switch before page callback is invoked for the first time.
+
     PageDefinition **m_page_def;
 
     const int (&m_button_pins)[btn_count];
+    int m_button_state[btn_count] = {HIGH};
+    SignalDebouncer btn_debouncer[btn_count] = {};
 
-    int m_button_state[btn_count] = {0};
-    int m_last_button_state[btn_count] = {0};
-    unsigned long m_debounce_timer[btn_count] = {LOW};
+    void readButtons();
 
-    int prevPage(int page_num);
+    int nextPageNum(PageDefinition *next_page_ptr);
+    int prevPageNum(int page_num);
 
     void draw();
 };
