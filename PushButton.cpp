@@ -13,21 +13,20 @@ PushButton::PushButton(int pin): SignalDebouncer(btn_delay), m_pin(pin), m_state
 
 PushButtonState PushButton::read()
 {
-  int input = SignalDebouncer::read(digitalRead(m_pin));
+  int input = SignalDebouncer::debounce(digitalRead(m_pin));
 
   switch (input)
   {
     case HIGH:  // Button is not pressed.
-      m_state = PushButtonState::up;
-      break;
-    case LOW:   // Button is pressed.
-      PushButtonState prev_state = m_state;
-      if (m_state == PushButtonState::up)
+      if (m_state == PushButtonState::down)
       {
         m_state = PushButtonState::pressed;
       } else {
-        m_state = PushButtonState::down;
+        m_state = PushButtonState::up;
       }
+      break;
+    case LOW:   // Button is pressed.
+      m_state = PushButtonState::down;
       break;
   }
 

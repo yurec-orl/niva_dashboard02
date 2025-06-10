@@ -6,7 +6,7 @@ DashPageMgr::DashPageMgr(IDashGfxWrapper &gfx, const int (&button_pins)[btn_coun
   m_buttons.reserve(btn_count);
   for (int i = 0; i < btn_count; ++i)
   {
-    m_buttons.push_back(PushButton(button_pins[i]));
+    m_buttons.push_back(button_pins[i]);
   }
 };
 
@@ -27,7 +27,7 @@ void DashPageMgr::loop()
   for (int i = 0; i < btn_count; ++i)
   {
     PageDefinition *next_page_ptr = m_page_def[m_page_num]->buttons[i].next_page;
-    if (m_buttons[i].state() == PushButtonState::pressed && next_page_ptr != nullptr)
+    if (buttonState(i) == PushButtonState::pressed && next_page_ptr != nullptr)
     {
       next_page = nextPageNum(next_page_ptr);
     }
@@ -71,7 +71,7 @@ void DashPageMgr::draw()
 
     int fg_color = 65504;
     int bg_color = 0;
-    if (m_buttons[j].state() == PushButtonState::down)
+    if (buttonState(j) == PushButtonState::down)
     {
       int tmp = fg_color;
       fg_color = bg_color;
@@ -146,8 +146,8 @@ void DashPageMgr::setPage(int page_num)
 
 void DashPageMgr::readButtons()
 {
-  for (int i = 0; i < btn_count; ++i)
+  for (auto &button: m_buttons)
   {
-    m_buttons[i].read();
+    button.read();
   }
 }

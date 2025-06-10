@@ -14,8 +14,8 @@ class PushButton: protected SignalDebouncer
   public:
     PushButton(int pin);
 
-    PushButtonState read();
-    PushButtonState state() const;
+    PushButtonState read();           // Read pin value and convert it to PushButtonState.
+    PushButtonState state() const;    // Return last PushButtonState value.
 
   private:
     int m_pin;
