@@ -1,11 +1,12 @@
 #include "DashPageMgr.hpp"
 
-DashPageMgr::DashPageMgr(IDashGfxWrapper &gfx, const int (&button_pins)[btn_count], PageDefinition **page_def): m_gfx(gfx), m_button_pins(button_pins), m_page_def(page_def)
+DashPageMgr::DashPageMgr(IDashGfxWrapper &gfx, const int (&button_pins)[btn_count], PageDefinition **page_def): m_gfx(gfx), m_page_def(page_def)
 {
-  // Set up input pins for defined buttons
+  // Set up button press handlers
+  m_buttons.reserve(btn_count);
   for (int i = 0; i < btn_count; ++i)
   {
-    pinMode(m_button_pins[i], INPUT_PULLUP);
+    m_buttons.push_back(PushButton(button_pins[i]));
   }
 };
 
@@ -26,7 +27,7 @@ void DashPageMgr::loop()
   for (int i = 0; i < btn_count; ++i)
   {
     PageDefinition *next_page_ptr = m_page_def[m_page_num]->buttons[i].next_page;
-    if (m_button_state[i] == LOW && next_page_ptr != nullptr)
+    if (m_buttons[i].state() == PushButtonState::pressed && next_page_ptr != nullptr)
     {
       next_page = nextPageNum(next_page_ptr);
     }
@@ -35,7 +36,7 @@ void DashPageMgr::loop()
   // Call current page callback
   PageState state = m_page_state;
   m_page_state = PageState::on_process;
-  if (!m_page_def[m_page_num]->callback(m_gfx, m_button_state, state))
+  if (!m_page_def[m_page_num]->callback(m_gfx, m_buttons, state))
   {
     int prev_page = prevPageNum(m_page_num);
     if (prev_page != -1)
@@ -70,7 +71,7 @@ void DashPageMgr::draw()
 
     int fg_color = 65504;
     int bg_color = 0;
-    if (m_button_state[j] == LOW)
+    if (m_buttons[j].state() == PushButtonState::down)
     {
       int tmp = fg_color;
       fg_color = bg_color;
@@ -90,9 +91,9 @@ void DashPageMgr::draw()
   }
 }
 
-int DashPageMgr::readButton(int num)
+PushButtonState DashPageMgr::buttonState(int num)
 {
-  return btn_debouncer[num].read(digitalRead(m_button_pins[num]));
+  return m_buttons[num].state();
 }
 
 int DashPageMgr::nextPageNum(PageDefinition *next_page_ptr)
@@ -135,7 +136,7 @@ void DashPageMgr::setPage(int page_num)
   // Ivoke current page callback once to notify that we are leaving the page.
   if (m_page_num != -1)
   {
-    m_page_def[m_page_num]->callback(m_gfx, m_button_state, PageState::on_leave);
+    m_page_def[m_page_num]->callback(m_gfx, m_buttons, PageState::on_leave);
   }
   
   m_gfx.fillScreen(RA8875_BLACK);
@@ -147,6 +148,6 @@ void DashPageMgr::readButtons()
 {
   for (int i = 0; i < btn_count; ++i)
   {
-    m_button_state[i] = readButton(i);
+    m_buttons[i].read();
   }
 }

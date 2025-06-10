@@ -1,9 +1,10 @@
 #pragma once
 
 #include <Arduino.h>
+#include <Arduino_AVRSTL.h>
 
 #include "DashGfxWrapper.hpp"
-#include "SignalDebouncer.hpp"
+#include "PushButton.hpp"
 
 namespace {
   constexpr int btn_count = 8;                  // number of physical buttons
@@ -31,7 +32,7 @@ struct PageDefinition
 {
   // Callback for page specific stuff. on_switched is true when called first time after switching from another page.
   // Return false to switch to previous page.
-  bool (*callback)(IDashGfxWrapper &gfx, const int (&m_button_state)[btn_count], PageState state = PageState::on_process);
+  bool (*callback)(IDashGfxWrapper &gfx, const std::vector<PushButton> &buttons, PageState state = PageState::on_process);
   ButtonDefinition buttons[btn_count];
 };
 
@@ -47,7 +48,7 @@ class DashPageMgr
     // Call from main loop() function to handle input and output
     void loop();
 
-    int readButton(int num);  // num is a button number, not the pin number.
+    PushButtonState buttonState(int num);  // num is a button number, not the pin number.
 
     static constexpr int buttonCountInCol() { return btn_count; }
     
@@ -60,9 +61,7 @@ class DashPageMgr
 
     PageDefinition **m_page_def;
 
-    const int (&m_button_pins)[btn_count];
-    int m_button_state[btn_count] = {HIGH};
-    SignalDebouncer btn_debouncer[btn_count] = {};
+    std::vector<PushButton> m_buttons;
 
     void readButtons();
 

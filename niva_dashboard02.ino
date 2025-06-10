@@ -4,6 +4,7 @@
 
 #include "DashGfxWrapper.hpp"
 #include "DashPageMgr.hpp"
+#include "PushButton.hpp"
 
 // IO pins
 
@@ -15,7 +16,7 @@ namespace {
 
 // MFD pages definitions
 
-bool testPageCallback(IDashGfxWrapper &gfx, const int (&button_state)[DashPageMgr::buttonCountInCol()], PageState state = PageState::on_process) 
+bool testPageCallback(IDashGfxWrapper &gfx, const std::vector<PushButton> &buttons, PageState state = PageState::on_process) 
 {
   if (state == PageState::on_switch)
   {
@@ -25,7 +26,7 @@ bool testPageCallback(IDashGfxWrapper &gfx, const int (&button_state)[DashPageMg
   return true;
 }
 
-bool testPage2Callback(IDashGfxWrapper &gfx, const int (&button_state)[DashPageMgr::buttonCountInCol()], PageState state = PageState::on_process) 
+bool testPage2Callback(IDashGfxWrapper &gfx, const std::vector<PushButton> &buttons, PageState state = PageState::on_process) 
 {
   static unsigned long timer = 0;
   
@@ -34,7 +35,7 @@ bool testPage2Callback(IDashGfxWrapper &gfx, const int (&button_state)[DashPageM
     static constexpr char *msg = "TEST PAGE 2";
     gfx.textWrite(256, 120, 1, 65504, 0, msg);
     timer = millis();
-  } else if (button_state[7] == LOW) {
+  } else if (buttons[7].state() == PushButtonState::pressed) {
     return false;
   }
   
