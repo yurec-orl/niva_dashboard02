@@ -77,7 +77,7 @@ void setup()
   }
 
   testPage = {testPageCallback,
-              {{"–°–¢–† 2", &testPage2},
+              {{"ëíê 2", &testPage2},
                {"2", nullptr},
                {"3", nullptr},
                {"4", nullptr},
@@ -93,7 +93,7 @@ void setup()
                 {"5", nullptr},
                 {"", nullptr},
                 {"", nullptr},
-                {"–í–û–ó–í", &testPage}}};
+                {"ÇéáÇ", &testPage}}};
 
   // With hardware accelleration this is instant
   //dashRA8875GfxWrapper.fillScreen(RA8875_WHITE);
