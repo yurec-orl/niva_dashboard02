@@ -28,13 +28,8 @@ bool DashRA8875GfxWrapper::setup()
     textWrite(0, 0, 1, colorScheme().textColor, colorScheme().textBackground, msg);
 
     // Load font into RA8775 controller memory
+    // Built-int RA8775 font is Latin-1. Custom font is required for cyrillic support.
     loadFont(&epd_bitmap_font[0], 960, 32, ' ', 212);
-
-    char *text = "asdfgäë¢ ¯à®«";
-    userTextWrite(64, 64, 2, colorScheme().textColor, colorScheme().textBackground, text);
-
-    for (;;)
-        delay(100);
 
     return true;
 }

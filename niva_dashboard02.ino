@@ -4,6 +4,7 @@
 #include "DashGfxWrapper.hpp"
 #include "DashPageMgr.hpp"
 #include "PushButton.hpp"
+#include "snake.hpp"
 
 // IO pins
 
@@ -23,8 +24,10 @@ bool testPageCallback(IDashGfxWrapper &gfx,
 {
   if (state == PageState::on_switch)
   {
-    static constexpr char *msg = "TEST PAGE";
-    gfx.textWrite(256, 120, 1, gfx.colorScheme().textColor, gfx.colorScheme().textBackground, msg);
+    constexpr int scale = 2;
+    static constexpr char *msg = "ëíêÄçàñÄ 1";
+    gfx.userTextWrite(256, 120, scale, gfx.colorScheme().textColor, gfx.colorScheme().textBackground, msg);
+    gfx.drawRect(256, 120, gfx.textWidth(msg, scale), gfx.chHeight(scale), gfx.colorScheme().statusTextColor);
   }
   return true;
 }
@@ -37,12 +40,20 @@ bool testPage2Callback(IDashGfxWrapper &gfx,
 
   if (state == PageState::on_switch)
   {
-    static constexpr char *msg = "TEST PAGE 2";
-    gfx.textWrite(256, 120, 1, gfx.colorScheme().textColor, gfx.colorScheme().textBackground, msg);
+    constexpr int scale = 2;
+    static constexpr char *msg = "ëíêÄçàñÄ 2";
+    gfx.userTextWrite(256, 120, scale, gfx.colorScheme().textColor, gfx.colorScheme().textBackground, msg);
     timer = millis();
   }
 
   return (millis() - timer) < 3000;
+}
+
+bool hiddenCallback(IDashGfxWrapper &gfx,
+                    const std::vector<PushButton> &buttons,
+                    PageState state)
+{
+  return snake(gfx, buttons, state);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -51,8 +62,9 @@ bool testPage2Callback(IDashGfxWrapper &gfx,
 
 PageDefinition testPage;
 PageDefinition testPage2;
+PageDefinition hidden;
 
-PageDefinition *pageDef[] = {&testPage, &testPage2, nullptr};
+PageDefinition *pageDef[] = {&testPage, &testPage2, &hidden, nullptr};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Global objects
@@ -83,7 +95,7 @@ void setup()
                {"4", nullptr},
                {"5", nullptr},
                {"6", nullptr},
-               {"7", nullptr},
+               {">", &hidden},
                {"8", nullptr}}};
   testPage2 = {testPage2Callback,
                {{"1", nullptr},
@@ -94,19 +106,21 @@ void setup()
                 {"", nullptr},
                 {"", nullptr},
                 {"ÇéáÇ", &testPage}}};
-
-  // With hardware accelleration this is instant
-  //dashRA8875GfxWrapper.fillScreen(RA8875_WHITE);
-  //delay(250);
-  //dashRA8875GfxWrapper.fillScreen(RA8875_BLACK);
+  hidden = {hiddenCallback,
+            {{"/\\", nullptr},
+             {"\\/", nullptr},
+             {"", nullptr},
+             {"", nullptr},
+             {"<", nullptr},
+             {">", nullptr},
+             {"", nullptr},
+             {"ÇéáÇ", &testPage}}};
 
   pageMgr.setPage(0);
 }
 
-void loop()
+void drawUptime(DashRA8875GfxWrapper &gfx, int scale)
 {
-  pageMgr.loop();
-
   unsigned long currentMillis = millis();
   unsigned long seconds = currentMillis / 1000;
   unsigned long minutes = seconds / 60;
@@ -118,7 +132,13 @@ void loop()
   hours %= 24;
 
   char buf[64];
-  sprintf(buf, "Uptime: %ld\d %ld:%02ld:%02ld", days, hours, minutes, seconds);
-  dashRA8875GfxWrapper.textWrite(650, 460, 0, dashRA8875GfxWrapper.colorScheme().statusTextColor
-    , dashRA8875GfxWrapper.colorScheme().statusTextBackground, buf);
+  sprintf(buf, "ê†°Æ‚†: %ld\d %ld:%02ld:%02ld", days, hours, minutes, seconds);
+  gfx.userTextWrite(gfx.width() - gfx.textWidth(buf, scale), gfx.height() - gfx.chHeight(scale), scale, gfx.colorScheme().statusTextColor, gfx.colorScheme().statusTextBackground, buf);
+}
+
+void loop()
+{
+  pageMgr.loop();
+
+  drawUptime(dashRA8875GfxWrapper, 0);
 }

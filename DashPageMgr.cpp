@@ -35,6 +35,7 @@ void DashPageMgr::loop()
         next_page_ptr != nullptr)
     {
       next_page = nextPageNum(next_page_ptr);
+      Serial.print("Next page: "); Serial.println(next_page);
     }
   }
 
@@ -63,8 +64,8 @@ void DashPageMgr::draw()
   constexpr int spacing = 132;
 
   char buf[64];
-  snprintf(buf, sizeof(buf), "PG %02d", m_page_num);
-  m_gfx.textWrite(0, 460, 0, m_gfx.colorScheme().statusTextColor, m_gfx.colorScheme().statusTextBackground, buf);
+  snprintf(buf, sizeof(buf), "‘’ %02d", m_page_num);
+  m_gfx.userTextWrite(0, m_gfx.height() - m_gfx.chHeight(0), 0, m_gfx.colorScheme().statusTextColor, m_gfx.colorScheme().statusTextBackground, buf);
 
   // Button labels
 
@@ -89,10 +90,8 @@ void DashPageMgr::draw()
       bg_color = m_gfx.colorScheme().buttonLabelsBackground;
     }
 
-    m_gfx.textWrite(text_x - (text_align * strlen(btn_text) * 16), text_y, 1,
+    m_gfx.userTextWrite(text_x - (text_align * strlen(btn_text) * 24), text_y, 2,
                     fg_color, bg_color, btn_text);
-    // m_gfx.print(text_x - (text_align * strlen(btn_text) * 16), text_y,
-    //             fg_color, bg_color, btn_text);
 
     text_y += spacing;
     if (text_y > m_gfx.height())

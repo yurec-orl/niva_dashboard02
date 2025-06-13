@@ -41,9 +41,17 @@ public:
 	virtual void textWrite(int x, int y, int scale, int color, int bkgnd,
 						   const char *buf) = 0;
 
-	// Uses software font.
+	// Uses custom CGRAM font.
+	virtual void userTextWrite(int x, int y, int scale, int color, int bkgnd, const char *buf) = 0;
+
+	// Uses software font. Very slow on RA8775.
 	virtual void print(int x, int y, int color, int bkgnd,
 					   const char *buf) = 0;
+
+	virtual int chWidth(int) = 0;
+	virtual int chHeight(int) = 0;
+
+	virtual int textWidth(char *, int) = 0;
 
 	static const GfxColorScheme &colorScheme() { return m_colorScheme; }
 
@@ -83,6 +91,10 @@ public:
 	void print(int x, int y, int color, int bkgnd,
 					const char *buf);
 
+	int chWidth(int scale) { return 8 * (scale+1); }
+	int chHeight(int scale) { return 16 * (scale+1); }
+
+	int textWidth(char *buf, int scale) { return strlen(buf) * chWidth(scale); }
 
 private:
 	Adafruit_RA8875 m_tft;
@@ -94,35 +106,3 @@ private:
  	void loadUserChar(const uint8_t symbol[],uint8_t address);
  	void drawUserChar(uint8_t symbolAddrs);
 };
-
-// class DashRA8875GfxWrapper : public IDashGfxWrapper
-// {
-// public:
-// 	DashRA8875GfxWrapper() : m_tft(RA8875_CS, RA8875_RESET) {};
-
-// 	bool setup();
-
-// 	int width();
-// 	int height();
-
-// 	void fillScreen(unsigned int color);
-// 	void drawLine(int x0, int y0, int x1, int y1, unsigned int color);
-// 	void drawRect(int x, int y, int w, int h, unsigned int color);
-// 	void fillRect(int x, int y, int w, int h, unsigned int color);
-// 	void drawCircle(int x, int y, int r, unsigned int color);
-// 	void fillCircle(int x, int y, int r, unsigned int color);
-// 	void drawRoundRect(int x, int y, int w, int h, int r, unsigned int color);
-// 	void fillRoundRect(int x, int y, int w, int h, int r, unsigned int color);
-// 	void textWrite(int x, int y, int scale, int color, int bkgnd,
-// 				   const char *buf);
-// 	void print(int x, int y, int color, int bkgnd,
-// 					const char *buf);
-
-
-// private:
-// 	RA8875 m_tft;
-// 	// IDashLogger& m_dashLogger;
-
-// 	void loadFont(const unsigned char *font, int width, int height, int first_char, int char_count);
-// 	//void loadChar(unsigned char loc, const unsigned char *data);
-// };
