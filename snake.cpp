@@ -2,9 +2,9 @@
 
 #include <deque>
 
-bool snake(IDashGfxWrapper &gfx,
-           const std::vector<PushButton> &buttons,
-           PageState state)
+PageDefinition *snake(IDashGfxWrapper &gfx,
+                      const std::vector<PushButton> &buttons,
+                      PageState state)
 {
     static bool game_over = false;
 
@@ -71,14 +71,14 @@ bool snake(IDashGfxWrapper &gfx,
             if (x < 0 || x > grid_w || y < 0 || y > grid_h)
             {
                 game_over = true;
-                return true;
+                return nullptr;
             }
             for (const auto &pos : snake)
             {
                 if (x == pos.first && y == pos.second)
                 {
                     game_over = true;
-                    return true;
+                    return nullptr;
                 }
             }
 
@@ -114,5 +114,5 @@ bool snake(IDashGfxWrapper &gfx,
         gfx.textWrite((gfx.width() - msg_w) / 2, (gfx.height() - gfx.chHeight(3)) / 2, 3, RA8875_WHITE, RA8875_BLACK, msg);
     }
 
-    return true;
+    return nullptr;
 }

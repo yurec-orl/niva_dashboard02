@@ -1,6 +1,6 @@
 #pragma once
 
-//#include <RA8875.h>
+// #include <RA8875.h>
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_RA8875.h>
@@ -37,6 +37,8 @@ public:
 	virtual void fillRoundRect(int x, int y, int w, int h, int r,
 							   unsigned int color) = 0;
 
+	virtual void drawPixels(uint16_t *p, uint32_t count, int16_t x, int16_t y) = 0;
+
 	// Uses hardware ASCII font.
 	virtual void textWrite(int x, int y, int scale, int color, int bkgnd,
 						   const char *buf) = 0;
@@ -54,6 +56,14 @@ public:
 	virtual int textWidth(char *, int) = 0;
 
 	static const GfxColorScheme &colorScheme() { return m_colorScheme; }
+
+	virtual uint8_t brightness() = 0;
+	virtual void setBrightness(uint8_t brightness) = 0;
+
+	virtual void setScrollWindow(int16_t x, int16_t y, int16_t w, int16_t h,
+								 uint8_t mode) = 0;
+	virtual void scrollX(int16_t dist) = 0;
+	virtual void scrollY(int16_t dist) = 0;
 
 private:
 	static const GfxColorScheme m_colorScheme;
@@ -85,24 +95,34 @@ public:
 	void fillCircle(int x, int y, int r, unsigned int color);
 	void drawRoundRect(int x, int y, int w, int h, int r, unsigned int color);
 	void fillRoundRect(int x, int y, int w, int h, int r, unsigned int color);
+
+	void drawPixels(uint16_t *p, uint32_t count, int16_t x, int16_t y);
+
 	void textWrite(int x, int y, int scale, int color, int bkgnd,
 				   const char *buf);
 	void userTextWrite(int x, int y, int scale, int color, int bkgnd, const char *buf);
 	void print(int x, int y, int color, int bkgnd,
-					const char *buf);
+			   const char *buf);
 
-	int chWidth(int scale) { return 8 * (scale+1); }
-	int chHeight(int scale) { return 16 * (scale+1); }
+	int chWidth(int scale) { return 8 * (scale + 1); }
+	int chHeight(int scale) { return 16 * (scale + 1); }
 
 	int textWidth(char *buf, int scale) { return strlen(buf) * chWidth(scale); }
 
+	uint8_t brightness();
+	void setBrightness(uint8_t brightness);
+
+	void setScrollWindow(int16_t x, int16_t y, int16_t w, int16_t h,
+						 uint8_t mode);
+	void scrollX(int16_t dist);
+	void scrollY(int16_t dist);
+
 private:
 	Adafruit_RA8875 m_tft;
-	// IDashLogger& m_dashLogger;
+	uint8_t m_brightness = 16;
 
 	void loadFont(const unsigned char *font, int width, int height, int first_char, int char_count);
-	//void loadChar(unsigned char loc, const unsigned char *data);
 
- 	void loadUserChar(const uint8_t symbol[],uint8_t address);
- 	void drawUserChar(uint8_t symbolAddrs);
+	void loadUserChar(const uint8_t symbol[], uint8_t address);
+	void drawUserChar(uint8_t symbolAddrs);
 };

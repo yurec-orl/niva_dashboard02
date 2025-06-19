@@ -1,5 +1,7 @@
 #include "DashPageMgr.hpp"
 
+#include "util.hpp"
+
 DashPageMgr::DashPageMgr(IDashGfxWrapper &gfx,
                          const int (&button_pins)[btn_count],
                          PageDefinition **page_def)
@@ -24,25 +26,42 @@ void DashPageMgr::loop()
   readButtons();
   draw();
 
-  // Check if any of the buttons that switch to another page have been pressed.
-  // Find the next page to switch to.
-  int next_page = -1;
-  for (int i = 0; i < btn_count; ++i)
-  {
-    PageDefinition *next_page_ptr =
-        m_page_def[m_page_num]->buttons[i].next_page;
-    if (buttonState(i) == PushButtonState::pressed &&
-        next_page_ptr != nullptr)
-    {
-      next_page = nextPageNum(next_page_ptr);
-      Serial.print("Next page: "); Serial.println(next_page);
-    }
-  }
-
   // Call current page callback
   PageState state = m_page_state;
   m_page_state = PageState::on_process;
-  if (!m_page_def[m_page_num]->callback(m_gfx, m_buttons, state))
+
+  int next_page = -1;
+  PageDefinition *ptr = nullptr;
+
+  // Invoke page callback, if defined.
+  if (m_page_def[m_page_num]->callback != nullptr)
+  {
+    ptr = m_page_def[m_page_num]->callback(m_gfx, m_buttons, state);
+    if (ptr != nullptr && ptr != prevPage())
+    {
+      next_page = nextPageNum(ptr);
+    }
+  }
+
+  // Check if any of the buttons that switch to another page have been pressed.
+  // Find the next page to switch to.
+  for (int i = 0; i < btn_count; ++i)
+  {
+    if (buttonState(i) == PushButtonState::pressed)
+    {
+      //Serial.print("Button pressed: ");
+      //Serial.println(i);
+      auto next_page_ptr = m_page_def[m_page_num]->buttons[i].next_page;
+      if (next_page_ptr != nullptr)
+      {
+        next_page = nextPageNum(next_page_ptr);
+      }
+      //Serial.print("Next page: ");
+      //Serial.println(next_page);
+    }
+  }
+
+  if (prevPage() == ptr)
   {
     int prev_page = prevPageNum(m_page_num);
     if (prev_page != -1)
@@ -58,18 +77,20 @@ void DashPageMgr::loop()
 
 void DashPageMgr::draw()
 {
-  // Margin and spacing are hardcoded - I don't expect the physical button
+  // Margins and spacing are hardcoded - I don't expect the physical button
   // layout to change.
   constexpr int top_margin = 20;
   constexpr int spacing = 132;
 
   char buf[64];
   snprintf(buf, sizeof(buf), "‘’ %02d", m_page_num);
-  m_gfx.userTextWrite(0, m_gfx.height() - m_gfx.chHeight(0), 0, m_gfx.colorScheme().statusTextColor, m_gfx.colorScheme().statusTextBackground, buf);
+  m_gfx.userTextWrite(0, m_gfx.height() - m_gfx.chHeight(0), 0,
+                      m_gfx.colorScheme().statusTextColor,
+                      m_gfx.colorScheme().statusTextBackground, buf);
 
-  // Button labels
+  // Button labels.
 
-  // x starts on the left, goes to the right once left column has been printed
+  // x starts on the left, goes to the right once left column has been printed.
   int text_x = 0;
   int text_y = top_margin;
   int text_align = 0;
@@ -77,21 +98,24 @@ void DashPageMgr::draw()
   {
     const char *btn_text = m_page_def[m_page_num]->buttons[j].text;
 
-    int fg_color;
-    int bg_color;
-    if (buttonState(j) == PushButtonState::down)
+    if (btn_text != nullptr)
     {
-      fg_color = m_gfx.colorScheme().buttonPressedLabelsColor;
-      bg_color = m_gfx.colorScheme().buttonPressedLabelsBackground;
-    }
-    else
-    {
-      fg_color = m_gfx.colorScheme().buttonLabelsColor;
-      bg_color = m_gfx.colorScheme().buttonLabelsBackground;
-    }
+      int fg_color;
+      int bg_color;
+      if (buttonState(j) == PushButtonState::down)
+      {
+        fg_color = m_gfx.colorScheme().buttonPressedLabelsColor;
+        bg_color = m_gfx.colorScheme().buttonPressedLabelsBackground;
+      }
+      else
+      {
+        fg_color = m_gfx.colorScheme().buttonLabelsColor;
+        bg_color = m_gfx.colorScheme().buttonLabelsBackground;
+      }
 
-    m_gfx.userTextWrite(text_x - (text_align * strlen(btn_text) * 24), text_y, 2,
-                    fg_color, bg_color, btn_text);
+      m_gfx.userTextWrite(text_x - (text_align * strlen(btn_text) * 24), text_y, 2,
+                          fg_color, bg_color, btn_text);
+    }
 
     text_y += spacing;
     if (text_y > m_gfx.height())
@@ -148,7 +172,7 @@ int DashPageMgr::prevPageNum(int page_num)
 void DashPageMgr::setPage(int page_num)
 {
   // Ivoke current page callback once to notify that we are leaving the page.
-  if (m_page_num != -1)
+  if (m_page_num != -1 && m_page_def[m_page_num]->callback != nullptr)
   {
     m_page_def[m_page_num]->callback(m_gfx, m_buttons, PageState::on_leave);
   }

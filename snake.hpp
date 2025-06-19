@@ -5,6 +5,6 @@
 #include "DashPageMgr.hpp"
 #include "PushButton.hpp"
 
-bool snake(IDashGfxWrapper &gfx,
-           const std::vector<PushButton> &buttons,
-           PageState state);
+PageDefinition *snake(IDashGfxWrapper &gfx,
+                      const std::vector<PushButton> &buttons,
+                      PageState state);

@@ -4,7 +4,12 @@
 #include "DashGfxWrapper.hpp"
 #include "DashPageMgr.hpp"
 #include "PushButton.hpp"
+#include "DashMainPage.hpp"
 #include "snake.hpp"
+#include "splash.hpp"
+#include "oscilloscope.hpp"
+
+#include "util.hpp"
 
 // IO pins
 
@@ -16,55 +21,80 @@ namespace
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// MFD pages
+// startupPage - initial page, switches to mainPage after delay
+// mainPage - indicators (automatically displayed after startupPage)
+////////////////////////////////////////////////////////////////////////////////
+
+PageDefinition startupPage;
+PageDefinition mainPage;
+PageDefinition diagPage;
+PageDefinition oscillPage;
+PageDefinition hidden;
+
+PageDefinition *pageDef[] = {&startupPage, &mainPage, &diagPage, &oscillPage, &hidden, nullptr};
+
+////////////////////////////////////////////////////////////////////////////////
 // Page callbacks
 ////////////////////////////////////////////////////////////////////////////////
 
-bool testPageCallback(IDashGfxWrapper &gfx,
-                      const std::vector<PushButton> &buttons, PageState state)
+PageDefinition *startupPageCallback(IDashGfxWrapper &gfx,
+                         const std::vector<PushButton> &buttons,
+                         PageState state)
 {
+  unsigned long timer;
   if (state == PageState::on_switch)
   {
-    constexpr int scale = 2;
-    static constexpr char *msg = "ëíêÄçàñÄ 1";
-    gfx.userTextWrite(256, 120, scale, gfx.colorScheme().textColor, gfx.colorScheme().textBackground, msg);
-    gfx.drawRect(256, 120, gfx.textWidth(msg, scale), gfx.chHeight(scale), gfx.colorScheme().statusTextColor);
-  }
-  return true;
-}
+    int pos_x = 0;
+    int pos_y = 0;
 
-bool testPage2Callback(IDashGfxWrapper &gfx,
-                       const std::vector<PushButton> &buttons,
-                       PageState state)
-{
-  static unsigned long timer = 0;
+    auto draw_func = [&pos_x,&pos_y,&gfx](const unsigned char *ptr, uint32_t size, int x, int y, int width, int height) {
+      std::array<uint16_t, 32> pixels;
+      int pixels_idx = 0;
+      int pixel_buf_idx = 0;
 
-  if (state == PageState::on_switch)
-  {
-    constexpr int scale = 2;
-    static constexpr char *msg = "ëíêÄçàñÄ 2";
-    gfx.userTextWrite(256, 120, scale, gfx.colorScheme().textColor, gfx.colorScheme().textBackground, msg);
+      pos_x = x;
+      pos_y = y;
+      for (int i = 0; i < size; i+=4)
+      {
+        std::array<uint8_t, 4> bytes;
+        *((uint32_t*) bytes.data()) = pgm_read_dword_near(ptr+i);
+
+        for (int byte_idx = 0; byte_idx<bytes.size(); ++byte_idx)
+        {
+          for (int bit = 0; bit < 8; ++bit) {
+              pixels[pixels_idx + 7 - bit] = (bytes[byte_idx] & (1 << bit)) ? RA8875_WHITE : RA8875_BLACK;
+          }
+          pixels_idx += 8;
+        }
+        if (pixels_idx >= pixels.size())
+        {
+          gfx.drawPixels(pixels.data(), pixels.size(), pos_x, pos_y);
+          pixels_idx = 0;
+          pos_x += pixels.size();
+          if (pos_x >= x + width || pos_x >= gfx.width())
+          {
+            pos_x = x;
+            pos_y++;
+          }
+        }
+      }
+    };
+
+    draw_func(epd_bitmap_lada_logo, sizeof(epd_bitmap_lada_logo), 240, 176, 320, 129);
     timer = millis();
+  } else if (millis() - timer > 2500) {
+    return &mainPage;
   }
-
-  return (millis() - timer) < 3000;
+  return nullptr;
 }
 
-bool hiddenCallback(IDashGfxWrapper &gfx,
+PageDefinition *hiddenCallback(IDashGfxWrapper &gfx,
                     const std::vector<PushButton> &buttons,
                     PageState state)
 {
   return snake(gfx, buttons, state);
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// MFD pages definitions
-////////////////////////////////////////////////////////////////////////////////
-
-PageDefinition testPage;
-PageDefinition testPage2;
-PageDefinition hidden;
-
-PageDefinition *pageDef[] = {&testPage, &testPage2, &hidden, nullptr};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Global objects
@@ -88,24 +118,34 @@ void setup()
       delay(1000);
   }
 
-  testPage = {testPageCallback,
-              {{"ëíê 2", &testPage2},
-               {"2", nullptr},
-               {"3", nullptr},
-               {"4", nullptr},
-               {"5", nullptr},
-               {"6", nullptr},
-               {">", &hidden},
-               {"8", nullptr}}};
-  testPage2 = {testPage2Callback,
-               {{"1", nullptr},
-                {"", nullptr},
-                {"", nullptr},
-                {"4", nullptr},
-                {"5", nullptr},
-                {"", nullptr},
-                {"", nullptr},
-                {"ÇéáÇ", &testPage}}};
+  startupPage = {&startupPageCallback, {}};
+  mainPage = {mainPageCallback,
+              {{"ÇàÑ+", nullptr},
+               {"ÇàÑ-", nullptr},
+               {"", nullptr},
+               {".", &hidden},
+               {"üêä+", nullptr},
+               {"üêä-", nullptr},
+               {"", nullptr},
+               {"ÑàÄÉ", &diagPage}}};
+  diagPage = {nullptr,
+                 {{"ÑÄíó", nullptr},
+                  {"ùÅì", nullptr},
+                  {"", nullptr},
+                  {"", nullptr},
+                  {"éëñ", &oscillPage},
+                  {"", nullptr},
+                  {"", nullptr},
+                  {"ÇéáÇ", &mainPage}}};
+  oscillPage = {oscillPageCallback,
+                 {{"", nullptr},
+                  {"", nullptr},
+                  {"", nullptr},
+                  {"", nullptr},
+                  {"", nullptr},
+                  {"", nullptr},
+                  {"", nullptr},
+                  {"ÇéáÇ", &diagPage}}};
   hidden = {hiddenCallback,
             {{"/\\", nullptr},
              {"\\/", nullptr},
@@ -114,9 +154,11 @@ void setup()
              {"<", nullptr},
              {">", nullptr},
              {"", nullptr},
-             {"ÇéáÇ", &testPage}}};
+             {"ÇéáÇ", &mainPage}}};
 
+  delay(100);
   pageMgr.setPage(0);
+  Serial.print("Free memory: "); Serial.println(freeMemory());
 }
 
 void drawUptime(DashRA8875GfxWrapper &gfx, int scale)

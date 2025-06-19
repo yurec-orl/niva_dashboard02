@@ -9,7 +9,7 @@
 
 namespace
 {
-  constexpr int btn_count = 8; // number of physical buttons
+  constexpr int btn_count = 8; // Number of physical buttons.
 }
 
 enum PageState
@@ -35,14 +35,16 @@ struct ButtonDefinition
 struct PageDefinition
 {
   // Callback for page specific stuff. on_switched is true when called first
-  // time after switching from another page. Return false to switch to previous
-  // page.
-  bool (*callback)(IDashGfxWrapper &gfx, const std::vector<PushButton> &buttons,
+  // time after switching from another page. 
+  // Return page pointer to switch to another page.
+  // Return DashPageMgr::prevPage to switch to previous page (if any).
+  // Return nullptr to keep working with current page.
+  PageDefinition * (*callback)(IDashGfxWrapper &gfx, const std::vector<PushButton> &buttons,
                    PageState state);
   std::array<ButtonDefinition, btn_count> buttons;
 };
 
-// Page manager handles switching MFD pages and button presses
+// Page manager handles switching MFD pages and button presses.
 
 class DashPageMgr
 {
@@ -52,13 +54,15 @@ public:
 
   void setPage(int page_num);
 
-  // Call from main loop() function to handle input and output
+  // Call from main loop() function to handle input and output.
   void loop();
 
   PushButtonState
   buttonState(int num); // num is a button number, not the pin number.
 
-  static constexpr int buttonCountInCol() { return btn_count; }
+  static constexpr int buttonCount() { return btn_count; }
+
+  static PageDefinition *prevPage() { return (PageDefinition*) -1; }
 
 private:
   IDashGfxWrapper &m_gfx;
