@@ -107,7 +107,7 @@ DashPageMgr pageMgr(dashRA8875GfxWrapper, pin_buttons, pageDef);
 
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println("Startup");
 
   // Initialize display
@@ -138,12 +138,12 @@ void setup()
                   {"", nullptr},
                   {"ÇéáÇ", &mainPage}}};
   oscillPage = {oscillPageCallback,
-                 {{"", nullptr},
+                 {{"ëíéè", nullptr},
                   {"", nullptr},
-                  {"", nullptr},
-                  {"", nullptr},
-                  {"", nullptr},
-                  {"", nullptr},
+                  {"ìÇã+", nullptr},
+                  {"ìÇã-", nullptr},
+                  {"<", nullptr},
+                  {">", nullptr},
                   {"", nullptr},
                   {"ÇéáÇ", &diagPage}}};
   hidden = {hiddenCallback,

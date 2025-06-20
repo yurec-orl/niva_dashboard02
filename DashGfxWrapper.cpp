@@ -14,8 +14,9 @@ bool DashRA8875GfxWrapper::setup()
         return false;
     }
 
-    // Reverse scan direction (register 0x20, bit 2 and 3) for both X and Y axis to rotate image 180 degrees (related to physical composition of the device).
-    m_tft.writeReg(0x20, 0x0C); // reverse scan direction for X
+    // Reverse scan direction (register 0x20, bit 2 and 3) for both X and Y axis to rotate image 180 degrees 
+    // (related to physical composition of the device).
+    m_tft.writeReg(0x20, 0x0C);
 
     m_tft.displayOn(true);
     m_tft.GPIOX(true);                              // Enable TFT - display enable tied to GPIOX
