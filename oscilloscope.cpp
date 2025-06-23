@@ -39,12 +39,14 @@ PageDefinition *oscillPageCallback(IDashGfxWrapper &gfx,
     int x = wp_x;
     int old_y = wp_y + wp_h;
 
-    int data_buf[wp_w];
-    char buf[64];
+    std::vector<int> data_buf;
+    data_buf.resize(wp_w);
+
+    char buf[256];
     uint8_t int_conv_buf[2];
 
     unsigned long timer;
-    unsigned long avg_time;
+    unsigned long time_base;
     unsigned long avg = 0;
     int max = 0;
     int min = 1024;
@@ -61,7 +63,7 @@ PageDefinition *oscillPageCallback(IDashGfxWrapper &gfx,
             {
                 data_buf[i] = analogRead(A3);
             }
-            avg_time = ((unsigned long)(millis() - timer)) * 1000 / wp_w;
+            time_base = ((unsigned long)(millis() - timer));
 
             avg = 0;
             max = 0;
@@ -89,7 +91,7 @@ PageDefinition *oscillPageCallback(IDashGfxWrapper &gfx,
             float d_u = ((max - min) * 5.0 / 1024.0) / div_coeff;
             floatToBytes(int_conv_buf, d_u);
 
-            snprintf(buf, sizeof(buf), "%4ld us  U=%2d.%02d V  dV=%d.%02d V    ", avg_time, u1, u2, int_conv_buf[0], int_conv_buf[1]);
+            snprintf(buf, sizeof(buf), "%4ld ms  U=%2d.%02d V  dV=%d.%02d V  ", time_base, u1, u2, int_conv_buf[0], int_conv_buf[1]);
             gfx.userTextWrite(150, 32, 0, RA8875_YELLOW, RA8875_BLACK, buf);
 
             int cy = ((float)wp_h / 2.0 - 32) / ((max - avg) * wp_h / 1024);
@@ -97,6 +99,10 @@ PageDefinition *oscillPageCallback(IDashGfxWrapper &gfx,
             cy = cy1 < cy ? cy1 : cy;
 
             int dy = ((float)avg * wp_h / 1024 * cy) - wp_h / 2;
+
+            // Serial.println("Debug: ");
+            // Serial.print("avg: "); Serial.print(avg);
+            // Serial.print("u: "); Serial.print(u);
 
             for (int i = 0; i < wp_w; ++i)
             {
@@ -114,6 +120,14 @@ PageDefinition *oscillPageCallback(IDashGfxWrapper &gfx,
                 {
                     button.read();
                 }
+                if (buttons_tmp[btn_idx].state() == PushButtonState::pressed)
+                {
+                    return DashPageMgr::prevPage();
+                }
+                else if (buttons_tmp[0].state() == PushButtonState::pressed)
+                {
+                    pause = !pause;
+                }
             }
         } else {
             for (auto &button : buttons_tmp)
@@ -122,15 +136,7 @@ PageDefinition *oscillPageCallback(IDashGfxWrapper &gfx,
             }
         }
 
-        if (buttons_tmp[btn_idx].state() == PushButtonState::pressed)
-        {
-            return DashPageMgr::prevPage();
-        }
-        else if (buttons_tmp[0].state() == PushButtonState::pressed)
-        {
-            pause = !pause;
-        }
-        // for (;;) delay(1000);
+        //for (;;) delay(1000);
     }
     return nullptr;
 }

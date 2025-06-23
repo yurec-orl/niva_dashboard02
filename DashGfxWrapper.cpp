@@ -8,9 +8,11 @@ const GfxColorScheme IDashGfxWrapper::m_colorScheme;
 
 bool DashRA8875GfxWrapper::setup()
 {
+    Serial.print("TFT init... ");
     /* Initialize the display using 'RA8875_480x80', 'RA8875_480x128', 'RA8875_480x272' or 'RA8875_800x480' */
     if (!m_tft.begin(RA8875_800x480))
     {
+        Serial.println(" error.");
         return false;
     }
 
@@ -31,6 +33,8 @@ bool DashRA8875GfxWrapper::setup()
     // Load font into RA8775 controller memory
     // Built-int RA8775 font is Latin-1. Custom font is required for cyrillic support.
     loadFont(&epd_bitmap_font[0], 960, 32, ' ', 212);
+
+    Serial.println(" done.");
 
     return true;
 }
