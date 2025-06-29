@@ -7,33 +7,33 @@ namespace
 	const int testSensorCycleMillis = 500;
 }
 
-IDashSensor::IDashSensor(const char *name, int inputPin)
-	: m_name(name), m_inputPin(inputPin)
+IDashSensor::IDashSensor(int input_pin)
+	: m_input_pin(input_pin)
 {
 }
 
-DashAnalogSensor::DashAnalogSensor(const char *name, int inputPin)
-	: IDashSensor(name, inputPin)
+DashAnalogSensor::DashAnalogSensor(int input_pin)
+	: IDashSensor(input_pin)
 {
 }
 
 int DashAnalogSensor::read()
 {
-	return analogRead(m_inputPin);
+	return analogRead(m_input_pin);
 }
 
-DashDigitalSensor::DashDigitalSensor(const char *name, int inputPin)
-	: IDashSensor(name, inputPin)
+DashDigitalSensor::DashDigitalSensor(int input_pin)
+	: IDashSensor(input_pin)
 {
 }
 
 int DashDigitalSensor::read()
 {
-	return digitalRead(m_inputPin);
+	return digitalRead(m_input_pin);
 }
 
-DashTestSensor::DashTestSensor(const char *name, int inputPin)
-	: IDashSensor(name, inputPin)
+DashTestSensor::DashTestSensor(int input_pin)
+	: IDashSensor(input_pin)
 {
 	// Serial.print("DashGlobals::setupDone = "); Serial.println(DashGlobals::setupDone);
 }
@@ -63,15 +63,6 @@ int DashTestSensor::read()
 	}
 	if (m_value >= 1023)
 		m_valueUp = false;
-
-	/*if (m_value > 0)
-	{
-		Serial.println("--");
-		Serial.println(curTime);
-		Serial.println(timeDelta);
-		Serial.println(m_valueDelta);
-		Serial.println(m_value);
-	}*/
 
 	return m_value;
 }

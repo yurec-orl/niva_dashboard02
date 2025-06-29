@@ -13,7 +13,7 @@ PushButton::PushButton(int pin): SignalDebouncer(btn_delay), m_pin(pin), m_state
 
 PushButtonState PushButton::read()
 {
-  int input = SignalDebouncer::debounce(digitalRead(m_pin));
+  int input = SignalDebouncer::value(digitalRead(m_pin));
 
   switch (input)
   {

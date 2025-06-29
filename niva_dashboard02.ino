@@ -31,9 +31,8 @@ PageDefinition mainPage;
 PageDefinition diagPage;
 PageDefinition oscillPage;
 PageDefinition snakePage;
-PageDefinition gameOfLifePage;
 
-PageDefinition *pageDef[] = {&startupPage, &mainPage, &diagPage, &oscillPage, &snakePage, &gameOfLifePage, nullptr};
+PageDefinition *pageDef[] = {&startupPage, &mainPage, &diagPage, &oscillPage, &snakePage, nullptr};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Page callbacks
@@ -101,84 +100,6 @@ PageDefinition *snakeCallback(IDashGfxWrapper &gfx,
   return snake(gfx, buttons, state);
 }
 
-PageDefinition *gameOfLifeCallback(IDashGfxWrapper &gfx,
-                                   const std::vector<PushButton> &buttons,
-                                   PageState state)
-{
-  static constexpr int cell_w = 8;
-  static constexpr int cell_h = 8;
-
-  static constexpr int w = 50;
-  static constexpr int h = 50;
-
-  static const int pos_x = (gfx.width() - w * cell_w) / 2;
-  static const int pos_y = (gfx.height() - h * cell_h) / 2;
-
-  static char curGen[w][h];
-  static char newGen[w][h];
-
-  if (state == PageState::on_switch)
-  {
-    Serial.println("Game of life");
-    memset(curGen, 0, sizeof(curGen));
-
-    randomSeed(millis());
-    for (int i = 0; i < 1000; ++i)
-    {
-      int x = random(0, w);
-      int y = random(0, h);
-      curGen[x][y] = 1;
-    }
-    // curGen[25][25] = 1;
-    // curGen[26][26] = 1;
-    // curGen[27][24] = 1;
-    // curGen[27][25] = 1;
-    // curGen[27][26] = 1;
-  }
-
-  memset(newGen, 0, sizeof(newGen));
-  for (int x = 1; x < w - 1; ++x)
-  {
-    for (int y = 1; y < h - 1; ++y)
-    {
-      int cell_color = curGen[x][y] ? RA8875_WHITE : RA8875_BLACK;
-      gfx.fillRect(pos_x + x * cell_w, pos_y + y * cell_h, cell_w, cell_h, cell_color);
-
-      int count = 0;
-      for (int x1 = x - 1; x1 <= x + 1; ++x1)
-      {
-        for (int y1 = y - 1; y1 <= y + 1; ++y1)
-        {
-          if (x1 == x && y1 == y)
-            continue;
-          if (curGen[x1][y1])
-          {
-            count++;
-          }
-        }
-      }
-
-      if (curGen[x][y])
-      {
-        if (count >= 2 && count <= 3)
-        {
-          // Serial.print("x="); Serial.print(x); Serial.print("y="); Serial.println(y);
-          newGen[x][y] = 1;
-        }
-      }
-      else if (count == 3)
-      {
-        // Serial.print("x="); Serial.print(x); Serial.print("y="); Serial.println(y);
-        newGen[x][y] = 1;
-      }
-    }
-  }
-  memcpy(curGen, newGen, sizeof(curGen));
-  Serial.println("------");
-
-  return nullptr;
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // Global objects
 ////////////////////////////////////////////////////////////////////////////////
@@ -205,15 +126,15 @@ void setup()
   mainPage = {mainPageCallback,
               {{"‚ˆ„+", nullptr},
                {"‚ˆ„-", nullptr},
-               {".", &gameOfLifePage},
+               {"", nullptr},
                {".", &snakePage},
                {"ŸŠ+", nullptr},
                {"ŸŠ-", nullptr},
                {"", nullptr},
                {"„ˆ€ƒ", &diagPage}}};
   diagPage = {nullptr,
-              {{"„€’—", nullptr},
-               {"“", nullptr},
+              {{"“", nullptr},
+               {"", nullptr},
                {"", nullptr},
                {"", nullptr},
                {"Ž‘–", &oscillPage},
@@ -238,15 +159,6 @@ void setup()
                 {">", nullptr},
                 {"", nullptr},
                 {"‚Ž‡‚", &mainPage}}};
-  gameOfLifePage = {gameOfLifeCallback,
-                    {{"", nullptr},
-                     {"", nullptr},
-                     {"", nullptr},
-                     {"", nullptr},
-                     {"", nullptr},
-                     {"", nullptr},
-                     {"", nullptr},
-                     {"‚Ž‡‚", &mainPage}}};
 
   delay(100);
   pageMgr.setPage(0);

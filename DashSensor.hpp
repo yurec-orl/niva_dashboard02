@@ -6,14 +6,11 @@
 class IDashSensor
 {
 public:
-	IDashSensor(const char *name, int inputPin);
-
-	const char *getName() { return m_name; }
+	IDashSensor(int input_pin);
 
 	virtual int read() = 0;
 protected:
-	int m_inputPin;
-	const char * m_name;
+	int m_input_pin;
 
 	int m_value = 0;
 };
@@ -21,7 +18,7 @@ protected:
 class DashAnalogSensor : public IDashSensor
 {
 public:
-	DashAnalogSensor(const char *name, int inputPin);
+	DashAnalogSensor(int input_pin);
 
 	int read() override;
 };
@@ -29,7 +26,7 @@ public:
 class DashDigitalSensor : public IDashSensor
 {
 public:
-	DashDigitalSensor(const char *name, int inputPin);
+	DashDigitalSensor(int input_pin);
 
 	int read() override;
 };
@@ -37,7 +34,7 @@ public:
 class DashTestSensor: public IDashSensor
 {
 public:
-	DashTestSensor(const char *name, int inputPin);
+	DashTestSensor(int input_pin);
 
 	int read() override;
 private:
