@@ -8,7 +8,7 @@
 class IDashSensorReader
 {
 public:
-    IDashSensorReader(const char * name, const int pin): m_name(name), m_pin(pin) 
+    IDashSensorReader(const int pin): m_pin(pin) 
     {
         setup();
     }
@@ -22,10 +22,9 @@ public:
     void reset();
 
 protected:
-    const char *m_name;
     const int m_pin;
 
-    virtual void setup() = 0;
+    virtual void setup() {}
 
     IDashSensor *m_sensor;
     ISignalProcessor *m_sigProc;
@@ -33,12 +32,16 @@ protected:
 
 class DashAnalogSensorReader: public IDashSensorReader
 {
-private:
-    virtual void setup();
+public:
+    DashAnalogSensorReader(int pin): IDashSensorReader(pin) {};
+protected:
+    virtual void setup() override;
 };
 
 class DashDigitalSensorReader: public IDashSensorReader
 {
-private:
-    virtual void setup();
+public:
+    DashDigitalSensorReader(int pin): IDashSensorReader(pin) {};
+protected:
+    virtual void setup() override;
 };
