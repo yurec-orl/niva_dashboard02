@@ -32,6 +32,10 @@ PageDefinition *diagPageCallback(IDashGfxWrapper &gfx,
     if (state == PageState::on_switch)
     {
         gfx.userTextWrite(title_pos_x, title_pos_y, 2, RA8875_WHITE, RA8875_BLACK, "„€’—ˆŠˆ");
+        for (int i = 0; fmt[i].first != nullptr; ++i)
+        {
+            DashSensorsProvider::instance().sensors()[fmt[i].second]->reset();
+        }
     }
     else
     {
