@@ -14,20 +14,20 @@ PageDefinition *diagPageCallback(IDashGfxWrapper &gfx,
     constexpr int pos_y = 128;
 
     static char buf[64];
-    static const char *fmt[] = {
-        "Темп      %4d",
-        "Топливо   %4d",
-        "Давл масл %4d",
-        "Зарядка   %4d",
-        "Ост топл  %4d",
-        "Обороты   %4d",
-        "Скорость  %4d",
-        "Авар масл %4d",
-        "Освещение %4d",
-        "Инд повор %4d",
-        "Даль свет %4d",
-        "Блок дифф %4d",
-        nullptr};
+    static std::pair<const char *, int> fmt[] = {
+        {"Темп      %4d", SensorID::temp},
+        {"Топливо   %4d", SensorID::fuel},
+        {"Давл масл %4d", SensorID::oil_press},
+        {"Зарядка   %4d", SensorID::charge},
+        {"Ост топл  %4d", SensorID::fuel_low},
+        {"Обороты   %4d", SensorID::tacho},
+        {"Скорость  %4d", SensorID::speed},
+        {"Авар масл %4d", SensorID::oil_press_low},
+        {"Освещение %4d", SensorID::lights_ind},
+        {"Инд повор %4d", SensorID::blinkers},
+        {"Даль свет %4d", SensorID::high_beam},
+        {"Блок дифф %4d", SensorID::diff_lock},
+        {nullptr, 0}};
 
     if (state == PageState::on_switch)
     {
@@ -38,9 +38,9 @@ PageDefinition *diagPageCallback(IDashGfxWrapper &gfx,
         int x = pos_x;
         int y = pos_y;
 
-        for (int i = 0; fmt[i] != nullptr; ++i)
+        for (int i = 0; fmt[i].first != nullptr; ++i)
         {
-            snprintf(buf, sizeof(buf), fmt[i], DashSensorsProvider::instance().sensors()[i]->read());
+            snprintf(buf, sizeof(buf), fmt[i].first, DashSensorsProvider::instance().sensors()[fmt[i].second]->read());
             //snprintf(buf, sizeof(buf), fmt[i], 0);
             gfx.userTextWrite(x, y, 2, RA8875_WHITE, RA8875_BLACK, buf);
             y += gfx.chHeight(2);
