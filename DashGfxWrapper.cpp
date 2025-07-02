@@ -16,7 +16,7 @@ bool DashRA8875GfxWrapper::setup()
         return false;
     }
 
-    // Reverse scan direction (register 0x20, bit 2 and 3) for both X and Y axis to rotate image 180 degrees 
+    // Reverse scan direction (register 0x20, bit 2 and 3) for both X and Y axis to rotate image 180 degrees
     // (related to physical composition of the device).
     m_tft.writeReg(0x20, 0x0C);
 
@@ -25,7 +25,7 @@ bool DashRA8875GfxWrapper::setup()
     m_tft.PWM1config(true, RA8875_PWM_CLK_DIV1024); // PWM output for backlight
     setBrightness(brightness());
 
-    m_tft.fillScreen(RA8875_BLACK);
+    fillScreen(RA8875_BLACK);
 
     constexpr char *msg = "INIT";
     textWrite(0, 0, 1, colorScheme().textColor, colorScheme().textBackground, msg);
@@ -51,7 +51,10 @@ int DashRA8875GfxWrapper::height()
 
 void DashRA8875GfxWrapper::fillScreen(unsigned int color)
 {
-    m_tft.fillScreen(color);
+    for (int i = 0; i < 5; ++i)
+    {
+        m_tft.fillScreen(color);
+    }
 }
 
 void DashRA8875GfxWrapper::drawLine(int x0, int y0, int x1, int y1, unsigned int color)
@@ -261,4 +264,29 @@ void DashRA8875GfxWrapper::scrollX(int16_t dist)
 void DashRA8875GfxWrapper::scrollY(int16_t dist)
 {
     m_tft.scrollY(dist);
+}
+
+void DashRA8875GfxWrapper::setActiveWindow(int16_t x, int16_t y, int16_t w, int16_t h)
+{
+    if (w == 0)
+    {
+        w = m_tft.width();
+    }
+
+    if (h == 0)
+    {
+        h = m_tft.height();
+    }
+
+    /* Set active window X */
+    m_tft.writeReg(RA8875_HSAW0, x & 0xFF); // horizontal start point
+    m_tft.writeReg(RA8875_HSAW1, x >> 8);
+    m_tft.writeReg(RA8875_HEAW0, (w - 1) & 0xFF); // horizontal end point
+    m_tft.writeReg(RA8875_HEAW1, (w - 1) >> 8);
+
+    /* Set active window Y */
+    m_tft.writeReg(RA8875_VSAW0, y & 0xFF); // vertical start point
+    m_tft.writeReg(RA8875_VSAW1, y >> 8);
+    m_tft.writeReg(RA8875_VEAW0, (h - 1) & 0xFF); // vertical end point
+    m_tft.writeReg(RA8875_VEAW1, (h - 1) >> 8);
 }

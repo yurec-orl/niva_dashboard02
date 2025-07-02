@@ -13,12 +13,14 @@ void IDashSensorReader::reset()
 
 void DashAnalogSensorReader::setup()
 {
+    //Serial.println("DashAnalogSensorReader::setup");
     m_sigProc = new SignalSmoother;
     m_sensor = new DashAnalogSensor(m_pin);
 }
 
 void DashDigitalSensorReader::setup()
 {
+    //Serial.println("DashDigitalSensorReader::setup");
     m_sigProc = new SignalDebouncer;
     m_sensor = new DashDigitalSensor(m_pin);
 }

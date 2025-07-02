@@ -26,7 +26,7 @@ public:
 class DashDigitalSensor : public IDashSensor
 {
 public:
-	DashDigitalSensor(int input_pin);
+	DashDigitalSensor(int input_pin, int mode = INPUT);
 
 	int read() override;
 };

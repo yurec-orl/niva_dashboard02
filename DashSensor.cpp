@@ -15,6 +15,7 @@ IDashSensor::IDashSensor(int input_pin)
 DashAnalogSensor::DashAnalogSensor(int input_pin)
 	: IDashSensor(input_pin)
 {
+	pinMode(input_pin, INPUT);
 }
 
 int DashAnalogSensor::read()
@@ -22,9 +23,10 @@ int DashAnalogSensor::read()
 	return analogRead(m_input_pin);
 }
 
-DashDigitalSensor::DashDigitalSensor(int input_pin)
+DashDigitalSensor::DashDigitalSensor(int input_pin, int mode)
 	: IDashSensor(input_pin)
 {
+	pinMode(input_pin, mode);
 }
 
 int DashDigitalSensor::read()

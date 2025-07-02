@@ -8,10 +8,7 @@
 class IDashSensorReader
 {
 public:
-    IDashSensorReader(const int pin): m_pin(pin) 
-    {
-        setup();
-    }
+    IDashSensorReader(const int pin): m_pin(pin) {}
     ~IDashSensorReader()
     {
         delete m_sensor;
@@ -33,15 +30,21 @@ protected:
 class DashAnalogSensorReader: public IDashSensorReader
 {
 public:
-    DashAnalogSensorReader(int pin): IDashSensorReader(pin) {};
+    DashAnalogSensorReader(int pin): IDashSensorReader(pin)
+    {
+        setup();
+    };
 protected:
-    virtual void setup() override;
+    void setup() override;
 };
 
 class DashDigitalSensorReader: public IDashSensorReader
 {
 public:
-    DashDigitalSensorReader(int pin): IDashSensorReader(pin) {};
+    DashDigitalSensorReader(int pin, int mode = INPUT): IDashSensorReader(pin)
+    {
+        setup();
+    };
 protected:
-    virtual void setup() override;
+    void setup() override;
 };

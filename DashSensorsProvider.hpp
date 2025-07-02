@@ -14,6 +14,7 @@ enum SensorID
     fuel,
     fuel_low,
     tacho,
+    speed,
     oil_press,
     oil_press_low,
     lights,

@@ -4,6 +4,7 @@
 #include "DashGfxWrapper.hpp"
 #include "DashPageMgr.hpp"
 #include "PushButton.hpp"
+#include "DashDiagPage.hpp"
 #include "DashMainPage.hpp"
 #include "snake.hpp"
 #include "splash.hpp"
@@ -132,7 +133,7 @@ void setup()
                {"üêä-", nullptr},
                {"", nullptr},
                {"ÑàÄÉ", &diagPage}}};
-  diagPage = {nullptr,
+  diagPage = {&diagPageCallback,
               {{"ùÅì", nullptr},
                {"", nullptr},
                {"", nullptr},

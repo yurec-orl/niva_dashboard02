@@ -65,6 +65,8 @@ public:
 	virtual void scrollX(int16_t dist) = 0;
 	virtual void scrollY(int16_t dist) = 0;
 
+	virtual void setActiveWindow(int16_t x = 0, int16_t y = 0, int16_t w = 0, int16_t h = 0) = 0;
+
 private:
 	static const GfxColorScheme m_colorScheme;
 };
@@ -116,6 +118,9 @@ public:
 						 uint8_t mode);
 	void scrollX(int16_t dist);
 	void scrollY(int16_t dist);
+
+	// Works for RA8875_800x480 mode only.
+	virtual void setActiveWindow(int16_t x = 0, int16_t y = 0, int16_t w = 0, int16_t h = 0);
 
 private:
 	Adafruit_RA8875 m_tft;
