@@ -53,7 +53,7 @@ public:
 	virtual int chWidth(int) = 0;
 	virtual int chHeight(int) = 0;
 
-	virtual int textWidth(char *, int) = 0;
+	virtual int textWidth(const char *, int) = 0;
 
 	static const GfxColorScheme &colorScheme() { return m_colorScheme; }
 
@@ -109,7 +109,7 @@ public:
 	int chWidth(int scale) { return 8 * (scale + 1); }
 	int chHeight(int scale) { return 16 * (scale + 1); }
 
-	int textWidth(char *buf, int scale) { return strlen(buf) * chWidth(scale); }
+	int textWidth(const char *buf, int scale) { return strlen(buf) * chWidth(scale); }
 
 	uint8_t brightness();
 	void setBrightness(uint8_t brightness);
