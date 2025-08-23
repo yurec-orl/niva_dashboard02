@@ -49,15 +49,15 @@ void DashPageMgr::loop()
   {
     if (buttonState(i) == PushButtonState::pressed)
     {
-      //Serial.print("Button pressed: ");
-      //Serial.println(i);
+      // Serial.print("Button pressed: ");
+      // Serial.println(i);
       auto next_page_ptr = m_page_def[m_page_num]->buttons[i].next_page;
       if (next_page_ptr != nullptr)
       {
         next_page = nextPageNum(next_page_ptr);
       }
-      //Serial.print("Next page: ");
-      //Serial.println(next_page);
+      // Serial.print("Next page: ");
+      // Serial.println(next_page);
     }
   }
 
@@ -94,28 +94,34 @@ void DashPageMgr::draw()
   int text_x = 0;
   int text_y = top_margin;
   int text_align = 0;
+  
   for (int j = 0; j < btn_count; ++j)
   {
-    const char *btn_text = m_page_def[m_page_num]->buttons[j].text;
-
-    if (btn_text != nullptr)
+    PushButtonState btn_state = buttonState(j);
+    if (btn_state != m_old_button_state[j])
     {
-      int fg_color;
-      int bg_color;
-      if (buttonState(j) == PushButtonState::down)
-      {
-        fg_color = m_gfx.colorScheme().buttonPressedLabelsColor;
-        bg_color = m_gfx.colorScheme().buttonPressedLabelsBackground;
-      }
-      else
-      {
-        fg_color = m_gfx.colorScheme().buttonLabelsColor;
-        bg_color = m_gfx.colorScheme().buttonLabelsBackground;
-      }
+      const char *btn_text = m_page_def[m_page_num]->buttons[j].text;
 
-      m_gfx.userTextWrite(text_x - (text_align * strlen(btn_text) * 24), text_y, 2,
-                          fg_color, bg_color, btn_text);
+      if (btn_text != nullptr)
+      {
+        int fg_color;
+        int bg_color;
+        if (buttonState(j) == PushButtonState::down)
+        {
+          fg_color = m_gfx.colorScheme().buttonPressedLabelsColor;
+          bg_color = m_gfx.colorScheme().buttonPressedLabelsBackground;
+        }
+        else
+        {
+          fg_color = m_gfx.colorScheme().buttonLabelsColor;
+          bg_color = m_gfx.colorScheme().buttonLabelsBackground;
+        }
+
+        m_gfx.userTextWrite(text_x - (text_align * strlen(btn_text) * 24), text_y, 2,
+                            fg_color, bg_color, btn_text);
+      }
     }
+    m_old_button_state[j] = btn_state;
 
     text_y += spacing;
     if (text_y > m_gfx.height())
@@ -180,6 +186,7 @@ void DashPageMgr::setPage(int page_num)
   m_gfx.fillScreen(RA8875_BLACK);
   m_page_num = page_num;
   m_page_state = PageState::on_switch;
+  std::fill(m_old_button_state.begin(), m_old_button_state.end(), PushButtonState::unknown);
 }
 
 void DashPageMgr::readButtons()

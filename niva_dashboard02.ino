@@ -7,7 +7,6 @@
 #include "DashDiagPage.hpp"
 #include "DashMainPage.hpp"
 #include "snake.hpp"
-#include "splash.hpp"
 #include "oscilloscope.hpp"
 
 #include "util.hpp"
@@ -23,76 +22,19 @@ namespace
 
 ////////////////////////////////////////////////////////////////////////////////
 // MFD pages
-// startupPage - initial page, switches to mainPage after delay
 // mainPage - indicators (automatically displayed after startupPage)
 ////////////////////////////////////////////////////////////////////////////////
 
-PageDefinition startupPage;
 PageDefinition mainPage;
 PageDefinition diagPage;
 PageDefinition oscillPage;
 PageDefinition snakePage;
 
-PageDefinition *pageDef[] = {&startupPage, &mainPage, &diagPage, &oscillPage, &snakePage, nullptr};
+PageDefinition *pageDef[] = {&mainPage, &diagPage, &oscillPage, &snakePage, nullptr};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Page callbacks
 ////////////////////////////////////////////////////////////////////////////////
-
-PageDefinition *startupPageCallback(IDashGfxWrapper &gfx,
-                                    const std::vector<PushButton> &buttons,
-                                    PageState state)
-{
-  unsigned long timer;
-  if (state == PageState::on_switch)
-  {
-    int pos_x = 0;
-    int pos_y = 0;
-
-    auto draw_func = [&pos_x, &pos_y, &gfx](const unsigned char *ptr, uint32_t size, int x, int y, int width, int height)
-    {
-      std::array<uint16_t, 32> pixels;
-      int pixels_idx = 0;
-      int pixel_buf_idx = 0;
-
-      pos_x = x;
-      pos_y = y;
-      for (int i = 0; i < size; i += 4)
-      {
-        std::array<uint8_t, 4> bytes;
-        *((uint32_t *)bytes.data()) = pgm_read_dword_near(ptr + i);
-
-        for (int byte_idx = 0; byte_idx < bytes.size(); ++byte_idx)
-        {
-          for (int bit = 0; bit < 8; ++bit)
-          {
-            pixels[pixels_idx + 7 - bit] = (bytes[byte_idx] & (1 << bit)) ? RA8875_WHITE : RA8875_BLACK;
-          }
-          pixels_idx += 8;
-        }
-        if (pixels_idx >= pixels.size())
-        {
-          gfx.drawPixels(pixels.data(), pixels.size(), pos_x, pos_y);
-          pixels_idx = 0;
-          pos_x += pixels.size();
-          if (pos_x >= x + width || pos_x >= gfx.width())
-          {
-            pos_x = x;
-            pos_y++;
-          }
-        }
-      }
-    };
-
-    draw_func(epd_bitmap_lada_logo, sizeof(epd_bitmap_lada_logo), 240, 176, 320, 129);
-    timer = millis();
-  }
-  else if (millis() - timer > 2500)
-  {
-    return &mainPage;
-  }
-  return nullptr;
-}
 
 PageDefinition *snakeCallback(IDashGfxWrapper &gfx,
                               const std::vector<PushButton> &buttons,
@@ -123,7 +65,7 @@ void setup()
       delay(1000);
   }
 
-  startupPage = {&startupPageCallback, {}};
+  //startupPage = {&startupPageCallback, {}};
   mainPage = {mainPageCallback,
               {{"‚ˆ„+", nullptr},
                {"‚ˆ„-", nullptr},

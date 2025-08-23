@@ -6,7 +6,7 @@ namespace {
   constexpr int btn_delay = 25;
 }
 
-PushButton::PushButton(int pin): SignalDebouncer(btn_delay), m_pin(pin), m_state(PushButtonState::up)
+PushButton::PushButton(int pin): SignalDebouncer(btn_delay), m_pin(pin)
 {
   pinMode(m_pin, INPUT_PULLUP);
 }

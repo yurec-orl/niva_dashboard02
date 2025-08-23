@@ -4,6 +4,7 @@
 
 enum PushButtonState 
 {
+  unknown = -1,
   up = 0,
   down = 1,
   pressed = 2   // Repoted once after button has been pressed and released.
@@ -19,5 +20,5 @@ class PushButton: protected SignalDebouncer
 
   private:
     int m_pin;
-    PushButtonState m_state;
+    PushButtonState m_state = PushButtonState::up;
 };

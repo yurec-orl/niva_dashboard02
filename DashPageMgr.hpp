@@ -35,12 +35,12 @@ struct ButtonDefinition
 struct PageDefinition
 {
   // Callback for page specific stuff. on_switched is true when called first
-  // time after switching from another page. 
+  // time after switching from another page.
   // Return page pointer to switch to another page.
   // Return DashPageMgr::prevPage to switch to previous page (if any).
   // Return nullptr to keep working with current page.
-  PageDefinition * (*callback)(IDashGfxWrapper &gfx, const std::vector<PushButton> &buttons,
-                   PageState state);
+  PageDefinition *(*callback)(IDashGfxWrapper &gfx, const std::vector<PushButton> &buttons,
+                              PageState state);
   std::array<ButtonDefinition, btn_count> buttons;
 };
 
@@ -57,12 +57,11 @@ public:
   // Call from main loop() function to handle input and output.
   void loop();
 
-  PushButtonState
-  buttonState(int num); // num is a button number, not the pin number.
+  PushButtonState buttonState(int num); // num is a button number, not the pin number.
 
   static constexpr int buttonCount() { return btn_count; }
 
-  static PageDefinition *prevPage() { return (PageDefinition*) -1; }
+  static PageDefinition *prevPage() { return (PageDefinition *)-1; }
 
 private:
   IDashGfxWrapper &m_gfx;
@@ -76,6 +75,7 @@ private:
   PageDefinition **m_page_def;
 
   std::vector<PushButton> m_buttons;
+  std::array<PushButtonState, btn_count> m_old_button_state;
 
   void readButtons();
 

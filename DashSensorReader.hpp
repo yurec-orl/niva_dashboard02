@@ -9,7 +9,7 @@ class IDashSensorReader
 {
 public:
     IDashSensorReader(const int pin): m_pin(pin) {}
-    ~IDashSensorReader()
+    virtual ~IDashSensorReader()
     {
         delete m_sensor;
         delete m_sigProc;
@@ -17,6 +17,9 @@ public:
 
     int read();
     void reset();
+
+    virtual const int maxVal() const = 0;
+    virtual const int minVal() const = 0;
 
 protected:
     const int m_pin;
@@ -34,6 +37,11 @@ public:
     {
         setup();
     };
+    virtual ~DashAnalogSensorReader() {}
+
+    const int maxVal() const override {return 1024;}
+    const int minVal() const override {return 0;}
+
 protected:
     void setup() override;
 };
@@ -45,6 +53,11 @@ public:
     {
         setup();
     };
+    virtual ~DashDigitalSensorReader() {}
+
+    const int maxVal() const override {return HIGH;}
+    const int minVal() const override {return LOW;}
+
 protected:
     void setup() override;
 };
