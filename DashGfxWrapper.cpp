@@ -6,24 +6,46 @@
 
 const GfxColorScheme IDashGfxWrapper::m_colorScheme;
 
+// Add register verification helper function
+bool DashRA8875GfxWrapper::verifyRegisterWrite(uint8_t reg, uint8_t expectedValue, int maxRetries) {
+    for (int i = 0; i < maxRetries; i++) {
+        uint8_t actualValue = m_tft.readReg(reg);
+        if (actualValue == expectedValue) {
+            return true;
+        }
+        delay(1); // Small delay before retry
+        m_tft.writeReg(reg, expectedValue);
+    }
+    return false;
+}
+
 bool DashRA8875GfxWrapper::setup()
 {
+    pinMode(RA8875_CS, OUTPUT);
+    digitalWrite(RA8875_CS, HIGH);
+
     Serial.print("TFT init... ");
     /* Initialize the display using 'RA8875_480x80', 'RA8875_480x128', 'RA8875_480x272' or 'RA8875_800x480' */
     if (!m_tft.begin(RA8875_800x480))
     {
         Serial.println(" error.");
         return false;
-    }
-
-    // Reverse scan direction (register 0x20, bit 2 and 3) for both X and Y axis to rotate image 180 degrees
+    }    // Reverse scan direction (register 0x20, bit 2 and 3) for both X and Y axis to rotate image 180 degrees
     // (related to physical composition of the device).
     m_tft.writeReg(0x20, 0x0C);
+    
+    // Verify critical register writes for hardware stability
+    if (!verifyRegisterWrite(0x20, 0x0C, 5)) {
+        Serial.println("Warning: Display orientation register write failed");
+    }
 
     m_tft.displayOn(true);
     m_tft.GPIOX(true);                              // Enable TFT - display enable tied to GPIOX
     m_tft.PWM1config(true, RA8875_PWM_CLK_DIV1024); // PWM output for backlight
     setBrightness(brightness());
+    
+    // Add small delay to let display stabilize
+    delay(50);
 
     fillScreen(RA8875_BLACK);
 

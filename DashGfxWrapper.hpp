@@ -122,6 +122,24 @@ public:
 	// Works for RA8875_800x480 mode only.
 	virtual void setActiveWindow(int16_t x = 0, int16_t y = 0, int16_t w = 0, int16_t h = 0);
 
+	// Add register verification helper function
+	bool verifyRegisterWrite(uint8_t reg, uint8_t expectedValue, int maxRetries = 3);
+
+	// Add display health check function
+	bool checkDisplayHealth() {
+		// Read some basic registers to verify display is responding correctly
+		uint8_t reg20 = m_tft.readReg(0x20); // Should be 0x0C after setup
+		uint8_t reg40 = m_tft.readReg(0x40); // Display configuration
+		
+		// Log suspicious values
+		if (reg20 != 0x0C) {
+			Serial.print("Display health warning: Reg 0x20 = 0x");
+			Serial.println(reg20, HEX);
+			return false;
+		}
+		return true;
+	}
+
 private:
 	Adafruit_RA8875 m_tft;
 	uint8_t m_brightness = 16;

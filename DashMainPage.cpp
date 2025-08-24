@@ -47,11 +47,11 @@ namespace {
         
         // View 1: Speed on top, tacho on bottom
         // Speed indicator: equal width and height (square)
-        int view1_speed_size = std::min(available_width, available_height / 2);
-        int view1_speed_x = left_margin + (available_width - view1_speed_size) / 2;
+        //int view1_speed_size = std::min(available_width, available_height / 2);
+        int view1_speed_w = available_width / 2;
+        int view1_speed_h = available_height / 2;
+        int view1_speed_x = left_margin + (available_width - view1_speed_w) / 2;
         int view1_speed_y = top_margin;
-        int view1_speed_w = view1_speed_size;
-        int view1_speed_h = view1_speed_size;
         
         // Tacho indicator: limited height of 96 pixels
         int view1_tacho_h = std::min(96, available_height / 2);
@@ -83,8 +83,7 @@ namespace {
         int view3_tacho_x = left_margin;
         int view3_tacho_y = top_margin + available_height / 3 + (available_height / 3 - view3_tacho_h) / 2;
         int view3_tacho_w = available_width;
-        
-        // Bottom indicators: limited width of 64 pixels
+          // Bottom indicators: limited width of 64 pixels
         int view3_bottom_indicator_w = 64;
         int view3_bottom_indicator_h = available_height / 3;
         int view3_total_width = 3 * view3_bottom_indicator_w;
@@ -95,21 +94,23 @@ namespace {
         int view3_bottom_indicator_y = top_margin + 2 * available_height / 3;
         
         // Create layout objects for View 1
-        view1_speedLayout = new DashIndicatorLayout(view1_speed_x, view1_speed_y, view1_speed_w, view1_speed_h, RA8875_WHITE, RA8875_BLACK);
-        view1_tachoLayout = new DashIndicatorLayout(view1_tacho_x, view1_tacho_y, view1_tacho_w, view1_tacho_h, RA8875_WHITE, RA8875_BLACK);
+        // Speed indicator colors: bright yellow, black background, dim yellow accent
+        std::vector<int> speedColors = {RA8875_YELLOW, RA8875_BLACK, 0x72C0 /*0x8B60*/};
+        view1_speedLayout = new DashIndicatorLayout(view1_speed_x, view1_speed_y, view1_speed_w, view1_speed_h, speedColors);
+        view1_tachoLayout = new DashIndicatorLayout(view1_tacho_x, view1_tacho_y, view1_tacho_w, view1_tacho_h, speedColors);
         
         // Create layout objects for View 2
-        view2_fuelLayout = new DashIndicatorLayout(view2_fuel_x, view2_indicator_y, view2_indicator_w, view2_indicator_h, RA8875_WHITE, RA8875_BLACK);
-        view2_oilLayout = new DashIndicatorLayout(view2_oil_x, view2_indicator_y, view2_indicator_w, view2_indicator_h, RA8875_WHITE, RA8875_BLACK);
-        view2_tempLayout = new DashIndicatorLayout(view2_temp_x, view2_indicator_y, view2_indicator_w, view2_indicator_h, RA8875_WHITE, RA8875_BLACK);
+        view2_fuelLayout = new DashIndicatorLayout(view2_fuel_x, view2_indicator_y, view2_indicator_w, view2_indicator_h, speedColors);
+        view2_oilLayout = new DashIndicatorLayout(view2_oil_x, view2_indicator_y, view2_indicator_w, view2_indicator_h, speedColors);
+        view2_tempLayout = new DashIndicatorLayout(view2_temp_x, view2_indicator_y, view2_indicator_w, view2_indicator_h, speedColors);
         
         // Create layout objects for View 3
-        view3_speedLayout = new DashIndicatorLayout(view3_speed_x, view3_speed_y, view3_speed_w, view3_speed_h, RA8875_WHITE, RA8875_BLACK);
-        view3_tachoLayout = new DashIndicatorLayout(view3_tacho_x, view3_tacho_y, view3_tacho_w, view3_tacho_h, RA8875_WHITE, RA8875_BLACK);
-        view3_fuelLayout = new DashIndicatorLayout(view3_fuel_x, view3_bottom_indicator_y, view3_bottom_indicator_w, view3_bottom_indicator_h, RA8875_WHITE, RA8875_BLACK);
-        view3_oilLayout = new DashIndicatorLayout(view3_oil_x, view3_bottom_indicator_y, view3_bottom_indicator_w, view3_bottom_indicator_h, RA8875_WHITE, RA8875_BLACK);
-        view3_tempLayout = new DashIndicatorLayout(view3_temp_x, view3_bottom_indicator_y, view3_bottom_indicator_w, view3_bottom_indicator_h, RA8875_WHITE, RA8875_BLACK);
-        
+        view3_speedLayout = new DashIndicatorLayout(view3_speed_x, view3_speed_y, view3_speed_w, view3_speed_h, speedColors);
+        view3_tachoLayout = new DashIndicatorLayout(view3_tacho_x, view3_tacho_y, view3_tacho_w, view3_tacho_h, speedColors);
+        view3_fuelLayout = new DashIndicatorLayout(view3_fuel_x, view3_bottom_indicator_y, view3_bottom_indicator_w, view3_bottom_indicator_h, speedColors);
+        view3_oilLayout = new DashIndicatorLayout(view3_oil_x, view3_bottom_indicator_y, view3_bottom_indicator_w, view3_bottom_indicator_h, speedColors);
+        view3_tempLayout = new DashIndicatorLayout(view3_temp_x, view3_bottom_indicator_y, view3_bottom_indicator_w, view3_bottom_indicator_h, speedColors);
+
         // Create indicators without layout parameters
         s_spdInd = new DashSegmentIndicator(gfx, rdr);
         s_tachoInd = new DashHBarIndicator(gfx, rdr, nullptr, 0, 0);
@@ -144,14 +145,15 @@ PageDefinition *mainPageCallback(IDashGfxWrapper &gfx,
 {
     static uint8_t view_idx = 0;
     static uint8_t old_view_idx = 1;    // To ensure initial redraw
-    
-    static DashAnalogSensorReader rdr(A0);
-    
+
+    static DashAnalogTestReader rdr(2000, 0, 1023);
+
     // Initialize layouts and indicators if not already done
     static bool layouts_initialized = false;
     if (!layouts_initialized) {
         initializeLayouts(gfx, rdr);
         layouts_initialized = true;
+        rdr.reset();
     }
     
     // When state is on_switch (full page redraw), pass true and draw full indicator.
@@ -181,6 +183,7 @@ PageDefinition *mainPageCallback(IDashGfxWrapper &gfx,
     {
         gfx.fillRect(left_margin, top_margin,
             gfx.width()-(right_margin+left_margin), gfx.height()-(bottom_margin+top_margin), RA8875_BLACK);
+        rdr.reset();
     }
 
     return nullptr;
