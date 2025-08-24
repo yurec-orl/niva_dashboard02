@@ -73,10 +73,34 @@ int DashRA8875GfxWrapper::height()
 
 void DashRA8875GfxWrapper::fillScreen(unsigned int color)
 {
-    for (int i = 0; i < 5; ++i)
-    {
-        m_tft.fillScreen(color);
-    }
+    // Based on Adafruit RA8875 library fillScreen implementation
+    // Uses rectHelper(0, 0, _width - 1, _height - 1, color, true)
+    
+    // Set X coordinates (full screen)
+    m_tft.writeReg(0x91, 0);               // X start - low byte
+    m_tft.writeReg(0x92, 0);               // X start - high byte
+    m_tft.writeReg(0x95, (width() - 1) & 0xFF);     // X end - low byte
+    m_tft.writeReg(0x96, (width() - 1) >> 8);       // X end - high byte
+
+    // Set Y coordinates (full screen)
+    m_tft.writeReg(0x93, 0);               // Y start - low byte
+    m_tft.writeReg(0x94, 0);               // Y start - high byte
+    m_tft.writeReg(0x97, (height() - 1) & 0xFF);    // Y end - low byte
+    m_tft.writeReg(0x98, (height() - 1) >> 8);      // Y end - high byte
+
+    // Set color registers
+    m_tft.writeReg(0x63, (color & 0xf800) >> 11);   // Red component
+    m_tft.writeReg(0x64, (color & 0x07e0) >> 5);    // Green component
+    m_tft.writeReg(0x65, (color & 0x001f));         // Blue component
+
+    // Add 50ms delay between setting registers and drawing
+    delay(50);
+
+    // Execute filled rectangle draw command
+    m_tft.writeReg(RA8875_DCR, 0xB0);  // Start filled rectangle draw
+    
+    // Wait for the command to finish
+    m_tft.waitPoll(RA8875_DCR, RA8875_DCR_LINESQUTRI_STATUS);
 }
 
 void DashRA8875GfxWrapper::drawLine(int x0, int y0, int x1, int y1, unsigned int color)
@@ -133,6 +157,9 @@ void DashRA8875GfxWrapper::userTextWrite(int x, int y, int scale, int color, int
 {
     int len = strlen(buf);
 
+    if (scale == 1)
+        scale = 0; // Scale==1 doesn't work properly, remap to 0.
+
     m_tft.textMode();
     m_tft.textSetCursor(x, y);
     m_tft.textEnlarge(scale);
@@ -146,6 +173,8 @@ void DashRA8875GfxWrapper::userTextWrite(int x, int y, int scale, int color, int
     temp = m_tft.readReg(0x41);
     temp &= 0b11110011; // Select memory bank.
     m_tft.writeReg(0x41, temp);
+
+    delay(1);
 
     m_tft.writeCommand(RA8875_MRWC);
     for (int i = 0; i < len; ++i)
